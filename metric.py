@@ -49,6 +49,7 @@ def f_score(model, test_loader, top_k):
             f1=0
         else:
             f1 = round(2 * p * r / (p + r), 6)
+
         #if p!=0 :
             #print('u_p:',p)
             #print('u_r:',r)
