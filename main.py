@@ -79,12 +79,12 @@ if __name__=='__main__':
             loss.backward()
             optimizer.step()
             loss_list.append(loss)
-            '''
+
             # Decay learning rate
             if (epoch + 1) % 20 == 0:
                 curr_lr /= 3
                 update_lr(optimizer, curr_lr)
-            '''
+
             # test
             model.eval()
             rates_y2 = model(userIdx2, itemIdx2, global_mean)
