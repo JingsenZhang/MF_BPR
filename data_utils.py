@@ -22,7 +22,7 @@ def load_all(test_num=100):
 	user_num = train_data['user'].max() + 1
 	item_num = train_data['item'].max() + 1
 
-	train_data = train_data.values.tolist()          #[[u1,i1],[u2,i2]...]    训练集：有过行为的用户和物品组合
+	train_data = train_data.values.tolist()          #[[u1,i1],[u2,i2]...]    训练集：有过行为的用户和物品组
 
 	# load ratings as a dok matrix
 	train_mat = sp.dok_matrix((user_num, item_num), dtype=np.float32)
