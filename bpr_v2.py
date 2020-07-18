@@ -9,7 +9,7 @@ import torch.optim as optim
 import torch.utils.data as data
 
 import model
-import metric
+import metrics
 import dataset
 
 parser = argparse.ArgumentParser()
@@ -48,7 +48,7 @@ for epoch in range(args.num_epoch):
     print("Epoch: {}, loss: {}".format(epoch + 1, round(loss.item(), 5)))
 
     model.eval()
-    F1 = metric.f_score_v2(model, testdata, args.top_k, test_user_ratings)
+    F1 = metrics.f_score_v2(model, testdata, args.top_k, test_user_ratings)
     f1_list.append(F1)
     print("Epoch: {}, loss: {}, Test F1: {}".format(epoch + 1, round(loss.item(), 5), round(F1, 5)))
 

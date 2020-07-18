@@ -39,8 +39,14 @@ class BPRmodel(nn.Module):
     def forward(self):
         pass
 
-    def predict(self,user,item):
+    def predict(self,user,item):                #参数可为数值或list
         user = self.user_emb(user)
         item = self.item_emb(item)
         prediction = (user * item).sum(dim=-1)
         return prediction
+
+    def recommend(self,prediction_list,top_k,item_list):
+        # torch.topk(input, k, dim=None, largest=True, sorted=True, out=None) -> (Tensor, LongTensor) 求tensor中某个dim的前k大或者前k小的值以及对应的index。  返回values,indices
+        _, indices = torch.topk(prediction_list, top_k)
+        recommend_u = torch.take(item_list, indices).numpy().tolist()
+        return recommend_u

@@ -9,8 +9,8 @@ def split_basic(path='./data/ratings.csv',per=0.8):
 
     traindata,testdata = model_selection.train_test_split(data, train_size=per, shuffle=True)
 
-    traindata.to_csv("data/train_sklearn.csv", header=None, index=False)
-    testdata.to_csv("data/test_sklearn.csv", header=None, index=False)
+    traindata.to_csv("data/train_shuffle.csv", header=None, index=False)
+    testdata.to_csv("data/test_shuffle.csv", header=None, index=False)
     print('dataset_num:',len(data))
     print('trainset_num:',len(traindata))
     print('testset_num:',len(testdata))
@@ -21,10 +21,10 @@ def split_time(path='data/ratings.csv',per=0.8):
     data = data.sort_values(by="time", ascending=True)                        # 按照列值排序
     data.to_csv('data/TimeAscend.csv', index=False)                           # 把新的数据写入文件
 
-    traindata,testdata = model_selection.train_test_split(data, train_size=per, shuffle=True)
+    traindata,testdata = model_selection.train_test_split(data, train_size=per, shuffle=False)
 
-    traindata.to_csv("data/train_sklearn.csv", header=None, index=False)
-    testdata.to_csv("data/test_sklearn.csv", header=None, index=False)
+    traindata.to_csv("data/train_time.csv", header=None, index=False)
+    testdata.to_csv("data/test_time.csv", header=None, index=False)
     print('dataset_num:',len(data))
     print('trainset_num:',len(traindata))
     print('testset_num:',len(testdata))
@@ -115,4 +115,4 @@ def split_basic_v2(path='./data/ratings.csv',per=0.8):
     testset.to_csv("data/test_basic.csv", header=None, index=False)
 
 
-split_user_num()
+split_user_time()

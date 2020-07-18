@@ -1,8 +1,5 @@
 import argparse
 import numpy as np
-#import matplotlib as mpl
-#mpl.use('Agg')
-import matplotlib.pyplot as plt
 import pandas as pd
 
 import torch
@@ -11,9 +8,9 @@ import torch.optim as optim
 import torch.utils.data as data
 
 import model
-import metric
+import metrics
 import data_utils
-import save
+import utils
 import dataset
 
 parser = argparse.ArgumentParser()
@@ -29,10 +26,6 @@ parser.add_argument("--test_num_ng", type=int,default=99, help="sample part of n
 parser.add_argument("--out",default=True,help="save model or not")
 args = parser.parse_args()
 
-# For updating learning rate
-def update_lr(optimizer, lr):
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
 
 if __name__=='__main__':
     #MF
@@ -61,10 +54,10 @@ if __name__=='__main__':
         print('item_num',item_num.item())
 
         model = model.MFmodel(user_num, item_num, args.factor_dim)
-        #save.load_model(model,"models/model_MF")
+        #utils.load_model(model,"models/model_MF")
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.lambd)   # 权重衰减（正则化）
         criterion = nn.MSELoss()
-        evaluate = metric.Metrics()
+        evaluate = metrics.Metric()
 
         loss_list = []
         rmse_list = []
@@ -83,7 +76,7 @@ if __name__=='__main__':
             # Decay learning rate
             if (epoch + 1) % 20 == 0:
                 curr_lr /= 3
-                update_lr(optimizer, curr_lr)
+                utils.update_lr(optimizer, curr_lr)
 
             # test
             model.eval()
@@ -92,24 +85,11 @@ if __name__=='__main__':
             rmse_list.append(rmse)
             print('Epoch: {}, loss: {}, Test RMSE: {}'.format(epoch + 1, round(loss.item(), 5), round(rmse.item(), 5)))
 
-        #save.save_model(model,'MF')
-        '''
-        plt.figure(1)
-        plt.plot(loss_list)
-        plt.title('Training')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.show()
-
-        plt.figure(2)
-        plt.plot(rmse_list)
-        plt.title('Testing')
-        plt.xlabel('Epochs')
-        plt.ylabel('RMSE')
-        plt.show()
-        '''
-        #np.savetxt("rmse/rmse25.txt", rmse_list)
-
+        utils.result_plot(loss_list, 'Training','Epochs', 'Loss',"image/mf_loss.jpg")
+        utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE',"image/mf_rmse.jpg")
+        all_path = 'rmse/' + 'D{}.txt'.format(args.factor_dim)
+        utils.save_txt(all_path, rmse_list)
+        #utils.save_model(model,'MF')
 
     #BPR
     else:
@@ -126,12 +106,13 @@ if __name__=='__main__':
         test_user_ratings = dataset.load_test_data()
 
         model = model.BPRmodel(user_num, item_num, args.factor_dim)
-        #save.load_model(model,"models/model_BPR")
+        #utils.load_model(model,"models/model_BPR")
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.lambd)
-        evaluate = metric.Metrics()
+        evaluate = metrics.Metric()
 
         loss_list=[]
         f1_list=[]
+        f1_epoch_list=[]
         test_u=[]
         user_f1=0.0
 
@@ -146,11 +127,11 @@ if __name__=='__main__':
                 loss = - (prediction_i - prediction_j).sigmoid().log().sum()
                 loss.backward()
                 optimizer.step()
-                # writer.add_scalar('data/loss', loss.item(), count)
             loss_list.append(loss)
 
             #test
             model.eval()
+            f1_epoch_list.clear()
             for user, item_i, item_j in test_loader:
                 test_u.clear()
                 if user[0].item() in test_user_ratings.keys():
@@ -159,37 +140,18 @@ if __name__=='__main__':
                 test_u.append(item_i[0].item())
 
                 prediction_i = model.predict(user, item_i)
-                # torch.topk(input, k, dim=None, largest=True, sorted=True, out=None) -> (Tensor, LongTensor) 求tensor中某个dim的前k大或者前k小的值以及对应的index。  返回values,indices
-                _, indices = torch.topk(prediction_i, args.top_k)
-
-                recommend_u = torch.take(item_i, indices).numpy().tolist()
+                recommend_u = model.recommend(prediction_i,args.top_k,item_i)
                 user_f1 = evaluate.f1_score(recommend_u,test_u)
-                f1_list.append(user_f1)
-            f1_mean=np.mean(f1_list)
+                f1_epoch_list.append(user_f1)
+            f1_mean=np.mean(f1_epoch_list)
+            f1_list.append(f1_mean)
             print("Epoch: {}, loss: {}, Test F1: {}".format(epoch + 1, round(loss.item(), 5),round(f1_mean,5)))
 
-        #save.save_model(model, 'BPR')
-
-        '''
-        plt.plot(loss_list)
-        plt.title('Training')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.show()
-        #plt.savefig("/home/zhangjingsen/MF_BPR/loss.jpg")
-        plt.clf()  #画完第一个图之后重置
-
-        plt.plot(f1_list)
-        plt.title('Testing')
-        plt.xlabel('Epochs')
-        plt.ylabel('F1-score')
-        plt.show()
-        #plt.savefig("/home/zhangjingsen/MF_BPR/f1.jpg")
-        '''
-
-        #first_path = 'f1/'
-        #all_path = first_path + 'D{}.txt'.format(args.factor_dim)
-        #np.savetxt(all_path, f1_list)
+        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss',"image/bpr_loss.jpg")
+        utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score',"image/bpr_f1.jpg")
+        #all_path = 'f1/' + 'D{}.txt'.format(args.factor_dim)
+        #utils.save_txt(all_path, f1_list)
+        #utils.save_model(model, 'BPR')
 
 
 
