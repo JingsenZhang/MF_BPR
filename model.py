@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class MFmodel(nn.Module):
+class MFmodel(nn.Module):    #BiasMF
     def __init__(self, user_num, item_num, factor_dim):
         super(MFmodel, self).__init__()
         self.user_num = user_num
@@ -17,7 +17,10 @@ class MFmodel(nn.Module):
         self.item_bias = nn.Embedding(item_num, 1)
         self.item_bias.weight.data = torch.zeros(self.item_num, 1).float()
 
-    def forward(self, user_indices, item_indeices, global_mean):
+    def forward(self):
+        pass
+
+    def predict(self,user_indices, item_indeices, global_mean):
         user_vec = self.user_emb(user_indices)           #pu向量
         item_vec = self.item_emb(item_indeices)          #qi向量
 

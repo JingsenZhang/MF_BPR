@@ -8,10 +8,9 @@ import torch.optim as optim
 import torch.utils.data as data
 
 import model
-import metrics
+from metrics import Metric
 import data_utils
 import utils
-import dataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model",type=int,default=1,help="1:MF  2:BPR")
@@ -22,7 +21,7 @@ parser.add_argument("--num_epoch",type=int,default=1,help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--factor_dim", type=int,default=20,help="predictive factors numbers in the model")
 parser.add_argument("--num_ng", type=int,default=4, help="sample negative items for training")
-parser.add_argument("--test_num_ng", type=int,default=99, help="sample part of negative items for testing")
+parser.add_argument("--test_samples_num", type=int,default=99, help="sample part of negative items for testing")
 parser.add_argument("--out",default=True,help="save model or not")
 args = parser.parse_args()
 
@@ -57,7 +56,6 @@ if __name__=='__main__':
         #utils.load_model(model,"models/model_MF")
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.lambd)   # 权重衰减（正则化）
         criterion = nn.MSELoss()
-        evaluate = metrics.Metric()
 
         loss_list = []
         rmse_list = []
@@ -67,7 +65,7 @@ if __name__=='__main__':
             # train
             model.train()
             optimizer.zero_grad()
-            rates_y = model(userIdx, itemIdx, global_mean)
+            rates_y = model.predict(userIdx, itemIdx, global_mean)
             loss = criterion(rates_y, rates)
             loss.backward()
             optimizer.step()
@@ -80,8 +78,8 @@ if __name__=='__main__':
 
             # test
             model.eval()
-            rates_y2 = model(userIdx2, itemIdx2, global_mean)
-            rmse = evaluate.RMSE(rates_y2, rates2)
+            rates_y2 = model.predict(userIdx2, itemIdx2, global_mean)
+            rmse = Metric.RMSE(rates_y2, rates2)
             rmse_list.append(rmse)
             print('Epoch: {}, loss: {}, Test RMSE: {}'.format(epoch + 1, round(loss.item(), 5), round(rmse.item(), 5)))
 
@@ -91,24 +89,22 @@ if __name__=='__main__':
         utils.save_txt(all_path, rmse_list)
         #utils.save_model(model,'MF')
 
+
     #BPR
     else:
         print('BPR')
-        train_data, test_data, user_num ,item_num, train_mat = data_utils.load_all()
-        print('user_num',user_num)
-        print('item_num',item_num)
+        train_data, test_user_ratings, test_data, user_num ,item_num, train_mat = data_utils.BPRData.load_all()
+
 
         # traindataset \ testdataset
         train_dataset = data_utils.BPRData(train_data, item_num, train_mat, args.num_ng, True)
         test_dataset = data_utils.BPRData(test_data, item_num, train_mat, 0, False)
         train_loader = data.DataLoader(train_dataset,batch_size=args.batch_size, shuffle=True)
-        test_loader = data.DataLoader(test_dataset,batch_size=args.test_num_ng+1, shuffle=False)
-        test_user_ratings = dataset.load_test_data()
+        test_loader = data.DataLoader(test_dataset,batch_size=args.test_samples_num, shuffle=False)
 
         model = model.BPRmodel(user_num, item_num, args.factor_dim)
         #utils.load_model(model,"models/model_BPR")
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.lambd)
-        evaluate = metrics.Metric()
 
         loss_list=[]
         f1_list=[]
@@ -119,9 +115,10 @@ if __name__=='__main__':
         for epoch in range(args.num_epoch):
             #train
             model.train()
-            train_loader.dataset.ng_sample()
+            train_loader.dataset.negative_sampling()
             for user, item_i, item_j in train_loader:          #在一个epoch中每次训练batch个数据
                 model.zero_grad()
+                #print('user.size:', user.size())
                 prediction_i = model.predict(user, item_i)
                 prediction_j = model.predict(user, item_j)
                 loss = - (prediction_i - prediction_j).sigmoid().log().sum()
@@ -141,7 +138,7 @@ if __name__=='__main__':
 
                 prediction_i = model.predict(user, item_i)
                 recommend_u = model.recommend(prediction_i,args.top_k,item_i)
-                user_f1 = evaluate.f1_score(recommend_u,test_u)
+                user_f1 = Metric.f1_score(recommend_u,test_u)
                 f1_epoch_list.append(user_f1)
             f1_mean=np.mean(f1_epoch_list)
             f1_list.append(f1_mean)
