@@ -3,14 +3,14 @@ import numpy as np
 import pandas as pd
 
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 
 import model
-from metrics import Metric
-import data_utils
 import utils
+from evaluation import Metric
+from data import data_utils
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model",type=int,default=1,help="1:MF  2:BPR")
@@ -31,7 +31,7 @@ if __name__=='__main__':
     if args.model==1:
         print('MF')
         # train data
-        trainData = pd.read_csv('data/ml100k.train.rating', header=None, names=['user', 'item', 'rate'], sep='\t')
+        trainData = pd.read_csv('dataset/ml100k.train.rating', header=None, names=['user', 'item', 'rate'], sep='\t')
         userIdx = trainData.user.values
         itemIdx = trainData.item.values
         rates = trainData.rate.values
@@ -42,7 +42,7 @@ if __name__=='__main__':
         global_mean = np.mean(rate)
 
         # test data
-        testData = pd.read_csv('data/ml100k.test.rating', header=None, names=['user', 'item', 'rate'], sep='\t')
+        testData = pd.read_csv('dataset/ml100k.test.rating', header=None, names=['user', 'item', 'rate'], sep='\t')
         userIdx2 = torch.Tensor(testData.user.values).long()
         itemIdx2 = torch.Tensor(testData.item.values).long()
         rates2 = torch.Tensor(testData.rate.values).float()
@@ -53,9 +53,8 @@ if __name__=='__main__':
         print('item_num',item_num.item())
 
         model = model.MFmodel(user_num, item_num, args.factor_dim)
-        #utils.load_model(model,"models/model_MF")
+        #utils.load_model(model,"result/model_MF")
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.lambd)   # 权重衰减（正则化）
-        criterion = nn.MSELoss()
 
         loss_list = []
         rmse_list = []
@@ -65,8 +64,7 @@ if __name__=='__main__':
             # train
             model.train()
             optimizer.zero_grad()
-            rates_y = model.predict(userIdx, itemIdx, global_mean)
-            loss = criterion(rates_y, rates)
+            loss = model(userIdx, itemIdx, global_mean,rates)
             loss.backward()
             optimizer.step()
             loss_list.append(loss)
@@ -85,16 +83,15 @@ if __name__=='__main__':
 
         utils.result_plot(loss_list, 'Training','Epochs', 'Loss',"image/mf_loss.jpg")
         utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE',"image/mf_rmse.jpg")
-        all_path = 'rmse/' + 'D{}.txt'.format(args.factor_dim)
-        utils.save_txt(all_path, rmse_list)
+        #all_path = 'result/rmse/' + 'D{}.txt'.format(args.factor_dim)
+        #utils.save_txt(all_path, rmse_list)
         #utils.save_model(model,'MF')
 
 
     #BPR
     else:
         print('BPR')
-        train_data, test_user_ratings, test_data, user_num ,item_num, train_mat = data_utils.BPRData.load_all()
-
+        train_data, test_user_ratings, test_data, user_num ,item_num, train_mat = data_utils.BPRData.load_all(test_samples_num=args.test_samples_num)
 
         # traindataset \ testdataset
         train_dataset = data_utils.BPRData(train_data, item_num, train_mat, args.num_ng, True)
@@ -103,7 +100,7 @@ if __name__=='__main__':
         test_loader = data.DataLoader(test_dataset,batch_size=args.test_samples_num, shuffle=False)
 
         model = model.BPRmodel(user_num, item_num, args.factor_dim)
-        #utils.load_model(model,"models/model_BPR")
+        #utils.load_model(model,"result/model_BPR")
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.lambd)
 
         loss_list=[]
@@ -112,16 +109,14 @@ if __name__=='__main__':
         test_u=[]
         user_f1=0.0
 
+        #train_loader.dataset.negative_sampling()
         for epoch in range(args.num_epoch):
             #train
             model.train()
             train_loader.dataset.negative_sampling()
             for user, item_i, item_j in train_loader:          #在一个epoch中每次训练batch个数据
                 model.zero_grad()
-                #print('user.size:', user.size())
-                prediction_i = model.predict(user, item_i)
-                prediction_j = model.predict(user, item_j)
-                loss = - (prediction_i - prediction_j).sigmoid().log().sum()
+                loss = model(user,item_i,item_j)
                 loss.backward()
                 optimizer.step()
             loss_list.append(loss)
@@ -137,7 +132,10 @@ if __name__=='__main__':
                 test_u.append(item_i[0].item())
 
                 prediction_i = model.predict(user, item_i)
-                recommend_u = model.recommend(prediction_i,args.top_k,item_i)
+                # torch.topk(input, k, dim=None, largest=True, sorted=True, out=None) -> (Tensor, LongTensor) 求tensor中某个dim的前k大或者前k小的值以及对应的index。  返回values,indices
+                _, indices = torch.topk(prediction_i, args.top_k)
+                recommend_u = torch.take(item_i, indices).numpy().tolist()
+
                 user_f1 = Metric.f1_score(recommend_u,test_u)
                 f1_epoch_list.append(user_f1)
             f1_mean=np.mean(f1_epoch_list)
@@ -146,7 +144,7 @@ if __name__=='__main__':
 
         utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss',"image/bpr_loss.jpg")
         utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score',"image/bpr_f1.jpg")
-        #all_path = 'f1/' + 'D{}.txt'.format(args.factor_dim)
+        #all_path = 'result/f1/' + 'D{}.txt'.format(args.factor_dim)
         #utils.save_txt(all_path, f1_list)
         #utils.save_model(model, 'BPR')
 

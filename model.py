@@ -17,8 +17,11 @@ class MFmodel(nn.Module):    #BiasMF
         self.item_bias = nn.Embedding(item_num, 1)
         self.item_bias.weight.data = torch.zeros(self.item_num, 1).float()
 
-    def forward(self):
-        pass
+    def forward(self,user_indices, item_indeices, global_mean,rates):
+        rates_y = self.predict(user_indices, item_indeices, global_mean)
+        criterion = nn.MSELoss()
+        loss = criterion(rates_y, rates)
+        return loss
 
     def predict(self,user_indices, item_indeices, global_mean):
         user_vec = self.user_emb(user_indices)           #pu向量
@@ -39,8 +42,11 @@ class BPRmodel(nn.Module):
         nn.init.normal_(self.user_emb.weight, std=0.01)
         nn.init.normal_(self.item_emb.weight, std=0.01)
 
-    def forward(self):
-        pass
+    def forward(self,user,item_i,item_j):
+        prediction_i = self.predict(user,item_i)
+        prediction_j = self.predict(user,item_j)
+        loss = - (prediction_i - prediction_j).sigmoid().log().sum()
+        return loss
 
     def predict(self,user,item):                #参数可为数值或list
         user = self.user_emb(user)

@@ -17,9 +17,9 @@ def result_plot(result,title,xlable,ylable,save_path='image/result.jpg'):
     #plt.savefig(save_path)
     #plt.clf()  # 画完第一个图之后重置
 
-def select_parameters(parameter_name,values,xlabel,ylabel,title):
+def select_parameters(metric_name,parameter_name,values,xlabel,ylabel,title):
     for v in values:
-        data_path = parameter_name + '/{}.txt'.format(v)
+        data_path = 'result/'+ metric_name + '/' + parameter_name + '{}.txt'.format(v)
         label='{}={}'.format(parameter_name,v)
         data = np.loadtxt(data_path)
         pl.plot(data, label=label)
@@ -30,14 +30,14 @@ def select_parameters(parameter_name,values,xlabel,ylabel,title):
     pl.ylabel(ylabel)
     plt.title(title)
     plt.show()
-    #调用：select_parameters(parameter_name='D',values=[5,10,15,20,25,30],xlabel='Epochs',ylabel='F1',title='Compare F1 for different D')
+    #调用：select_parameters(metric_name='f1',parameter_name='D',values=[5,10,15,20,25,30],xlabel='Epochs',ylabel='F1',title='Compare F1 for different D')
 
 #模型保存
 def save_model(model, model_name, model_path=None):
-    if not os.path.exists('models/'):
-        os.makedirs('models/')
+    if not os.path.exists('result/'):
+        os.makedirs('result/')
     if model_path is None:
-        model_path = "models/model_{}".format(model_name)
+        model_path = "result/model_{}".format(model_name)
     print('Saving models to {}'.format(model_path))
     torch.save(model.state_dict(), model_path)
 

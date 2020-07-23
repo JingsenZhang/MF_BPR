@@ -15,7 +15,8 @@ class BPRData(data.Dataset):
 		self.num_ng = num_ng
 		self.is_training = is_training
 
-	def load_all(train_rating_path='data/train_user_retio.csv', test_rating_path='data/test_user_retio.csv',test_negative='data/ml-1m.test.negative'):
+	def load_all(train_rating_path='dataset/train_user_retio.csv', test_rating_path='dataset/test_user_retio.csv',test_samples_num=100,
+				test_negative='dataset/ml-1m.test.negative'):
 		""" We load all the file here to save time in each epoch. """
 
 		# 用于训练的用户真实评分
@@ -31,7 +32,7 @@ class BPRData(data.Dataset):
 
 		# load ratings as a matrix  索引从0开始
 		train_mat = sp.dok_matrix((user_num, item_num), dtype=np.float32)
-		user_num = 6040
+		#user_num = 6040
 
 		for x in train_user_rating:
 			train_mat[x[0], x[1]] = 1.0  # 由训练集生成的用户与物品矩阵，已经有过行为的值为1
@@ -62,7 +63,7 @@ class BPRData(data.Dataset):
 
 		candidate_list=[]
 		for u in user_list:
-			for t in range(100):
+			for t in range(test_samples_num):
 				i = np.random.randint(item_num)
 				while (u, i) in train_mat:
 					i = np.random.randint(item_num)
@@ -92,17 +93,17 @@ class BPRData(data.Dataset):
 		item_i = data[idx][1]
 		item_j = data[idx][2] if self.is_training else data[idx][1]   #统一成三元组
 		return user, item_i, item_j
-'''
-	def negetive_sampling_v2(self):
-		train_user_rating = pd.read_csv('data/train_user_retio.csv', sep=',', header=None, names=['user', 'item'], usecols=[0, 1],dtype={0: np.int32, 1: np.int32})
-		item_list = train_user_rating['user'].unique()
-		candidate_list=[]
-		for u in user_list:
-			for t in range(100):
-				i = np.random.randint(item_num)
-				while (u, i) in train_mat:
-					i = np.random.randint(item_num)
-				candidate_list.append([u, i])
-		#print('can:',candidate_list)
 
-'''
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 import os
 
 if __name__=='__main__':
-    os.system( 'python main.py --model 2 --lr 0.1 --lambd 1e-5 --batch_size 4096 --num_epoch 100 --top_k 10 --factor_dim 20 --num_ng 1 --test_samples_num 100')
+    os.system( 'python main.py --model 1 --lr 0.1 --lambd 1e-5 --batch_size 4096 --num_epoch 2 --top_k 10 --factor_dim 20 --num_ng 3 --test_samples_num 100')
 
 
 
