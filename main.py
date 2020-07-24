@@ -1,3 +1,5 @@
+import time
+import sys
 import argparse
 import numpy as np
 import pandas as pd
@@ -7,13 +9,14 @@ import torch.optim as optim
 import torch.utils.data as data
 
 import model
-import utils
+from util import utils
+from util.logger import Logger
 from evaluation import Metric
 from data import data_utils
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model",type=int,default=1,help="1:MF  2:BPR")
+parser.add_argument("--model",type=str,default='MF',help="1:MF  2:BPR")
 parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
 parser.add_argument("--lambd",type=float, default=0.001, help="model regularization rate")
 parser.add_argument("--batch_size", type=int, default=4096, help="batch size for training")
@@ -27,8 +30,17 @@ args = parser.parse_args()
 
 
 if __name__=='__main__':
+
+    #log
+    timestamp = time.time()
+    run_id = "%.8f" % (timestamp)
+    log_dir='result/'+args.model+'_log/'+run_id+'.log'
+    log_error_dir = 'result/' + args.model + '_log/' +run_id+'error.log'
+    sys.stdout = Logger(log_dir, sys.stdout)
+    sys.stderr = Logger(log_error_dir, sys.stderr)  # redirect std err, if necessary
+
     #MF
-    if args.model==1:
+    if args.model=='MF':
         print('MF')
         # train data
         trainData = pd.read_csv('dataset/ml100k.train.rating', header=None, names=['user', 'item', 'rate'], sep='\t')
@@ -81,8 +93,8 @@ if __name__=='__main__':
             rmse_list.append(rmse)
             print('Epoch: {}, loss: {}, Test RMSE: {}'.format(epoch + 1, round(loss.item(), 5), round(rmse.item(), 5)))
 
-        utils.result_plot(loss_list, 'Training','Epochs', 'Loss',"image/mf_loss.jpg")
-        utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE',"image/mf_rmse.jpg")
+        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/mf_loss.jpg")
+        utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE', "image/mf_rmse.jpg")
         #all_path = 'result/rmse/' + 'D{}.txt'.format(args.factor_dim)
         #utils.save_txt(all_path, rmse_list)
         #utils.save_model(model,'MF')
@@ -142,8 +154,8 @@ if __name__=='__main__':
             f1_list.append(f1_mean)
             print("Epoch: {}, loss: {}, Test F1: {}".format(epoch + 1, round(loss.item(), 5),round(f1_mean,5)))
 
-        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss',"image/bpr_loss.jpg")
-        utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score',"image/bpr_f1.jpg")
+        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/bpr_loss.jpg")
+        utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score', "image/bpr_f1.jpg")
         #all_path = 'result/f1/' + 'D{}.txt'.format(args.factor_dim)
         #utils.save_txt(all_path, f1_list)
         #utils.save_model(model, 'BPR')
