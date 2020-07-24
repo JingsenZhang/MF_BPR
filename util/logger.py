@@ -1,4 +1,5 @@
 import sys
+import os
 
 class Logger(object):
     def __init__(self, filename='default.log', stream=sys.stdout):

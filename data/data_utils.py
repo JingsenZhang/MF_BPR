@@ -44,23 +44,36 @@ class BPRData(data.Dataset):
 				u, i, _, _ = line.split(',')
 				u = int(u)
 				i = int(i)
-				test_user_ratings[u].add(
-					i)  # test_user_ratings:  defaultdict(<type 'set()'>, { 'u1': {i1,i2....}, 'u2': {i5.i6....} } )
+				test_user_ratings[u].add(i)  # test_user_ratings:  defaultdict(<type 'set()'>, { 'u1': {i1,i2....}, 'u2': {i5.i6....} } )
 
 		# 候选物品
+		candidate_list = []
+
+		#all ranking
+		for u in user_list:
+			candidate_list[u]=[]
+			for i in range(1, item_num):
+				if not ((u, i) in train_mat):
+					candidate_list[u].append([u, i])
+
+		
+
+
+
 		'''
-		test_data = []
+		candidate_list = []
 		with open(test_negative, 'r') as fd:
 			line = fd.readline()
 			while line != None and line != '':
 				arr = line.split('\t')
 				u = eval(arr[0])[0]
-				test_data.append([u, eval(arr[0])[1]])
+				candidate_list.append([u, eval(arr[0])[1]])
 				for i in arr[1:]:
 					test_data.append([u, int(i)])             # [[0,25],[0,1064],[0,2791]...[1,133],[1,1072]...]  测试集
 				line = fd.readline()
 		'''
 
+		'''
 		candidate_list=[]
 		for u in user_list:
 			for t in range(test_samples_num):
@@ -68,7 +81,7 @@ class BPRData(data.Dataset):
 				while (u, i) in train_mat:
 					i = np.random.randint(item_num)
 				candidate_list.append([u, i])
-		#print('can:',candidate_list)
+		'''
 
 		return train_user_rating, test_user_ratings, candidate_list, user_num, item_num, train_mat
 
