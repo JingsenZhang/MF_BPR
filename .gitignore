@@ -1,0 +1,6 @@
+result/
+dataset/
+!dataset/*.rating
+!dataset/ml-1m.test.negative
+!dataset/train_user_retio.csv
+!dataset/test_user_retio.csv
