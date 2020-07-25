@@ -1,8 +1,7 @@
 __pycache__/
 .idea/
 
-/result/*
-!/result/
+/result/
 /dataset/*
 !/dataset/*.rating
 !/dataset/ml-1m.test.negative
