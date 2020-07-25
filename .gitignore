@@ -1,3 +1,6 @@
+__pycache__/
+.idea/
+
 result/
 dataset/
 !dataset/*.rating
