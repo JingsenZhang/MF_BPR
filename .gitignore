@@ -1,8 +1,8 @@
 __pycache__/
 .idea/
 
-result/
-dataset/
+/result/
+/dataset/
 !dataset/*.rating
 !dataset/ml-1m.test.negative
 !dataset/train_user_retio.csv
