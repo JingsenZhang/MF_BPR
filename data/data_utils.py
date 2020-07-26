@@ -45,10 +45,9 @@ class BPRData(data.Dataset):
 				u = int(u)
 				i = int(i)
 				test_user_ratings[u].add(i)  # test_user_ratings:  defaultdict(<type 'set()'>, { 'u1': {i1,i2....}, 'u2': {i5.i6....} } )
-
+		'''
 		# 候选物品
 		candidate_list = []
-
 		#all ranking
 		for u in user_list:
 			candidate_list[u]=[]
@@ -56,11 +55,8 @@ class BPRData(data.Dataset):
 				if not ((u, i) in train_mat):
 					candidate_list[u].append([u, i])
 
-		
 
 
-
-		'''
 		candidate_list = []
 		with open(test_negative, 'r') as fd:
 			line = fd.readline()
@@ -73,7 +69,7 @@ class BPRData(data.Dataset):
 				line = fd.readline()
 		'''
 
-		'''
+
 		candidate_list=[]
 		for u in user_list:
 			for t in range(test_samples_num):
@@ -81,7 +77,7 @@ class BPRData(data.Dataset):
 				while (u, i) in train_mat:
 					i = np.random.randint(item_num)
 				candidate_list.append([u, i])
-		'''
+
 
 		return train_user_rating, test_user_ratings, candidate_list, user_num, item_num, train_mat
 

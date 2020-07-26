@@ -93,8 +93,8 @@ if __name__=='__main__':
             rmse_list.append(rmse)
             print('Epoch: {}, loss: {}, Test RMSE: {}'.format(epoch + 1, round(loss.item(), 5), round(rmse.item(), 5)))
 
-        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/mf_loss.jpg")
-        utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE', "image/mf_rmse.jpg")
+        #utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/mf_loss.jpg")
+        #utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE', "image/mf_rmse.jpg")
         #all_path = 'result/rmse/' + 'D{}.txt'.format(args.factor_dim)
         #utils.save_txt(all_path, rmse_list)
         #utils.save_model(model,'MF')
@@ -154,8 +154,8 @@ if __name__=='__main__':
             f1_list.append(f1_mean)
             print("Epoch: {}, loss: {}, Test F1: {}".format(epoch + 1, round(loss.item(), 5),round(f1_mean,5)))
 
-        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/bpr_loss.jpg")
-        utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score', "image/bpr_f1.jpg")
+        #utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/bpr_loss.jpg")
+        #utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score', "image/bpr_f1.jpg")
         #all_path = 'result/f1/' + 'D{}.txt'.format(args.factor_dim)
         #utils.save_txt(all_path, f1_list)
         #utils.save_model(model, 'BPR')
