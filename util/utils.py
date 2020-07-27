@@ -2,8 +2,8 @@ import os
 import torch
 import numpy as np
 
-#import matplotlib as mpl      #服务器上使用时
-#mpl.use('Agg')
+import matplotlib as mpl      #服务器上使用时
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import pylab as pl
 
@@ -13,8 +13,8 @@ def result_plot(result,title,xlable,ylable,save_path='image/result.jpg'):
     plt.title(title)
     plt.xlabel(xlable)
     plt.ylabel(ylable)
-    plt.show()
-    #plt.savefig(save_path)
+    #plt.show()
+    plt.savefig(save_path)
     #plt.clf()  # 画完第一个图之后重置
 
 def select_parameters(metric_name,parameter_name,values,xlabel,ylabel,title):

@@ -51,6 +51,9 @@ class Metric():
             f1 = 0
         else:
             f1 = round(2 * p * r / (p + r), 6)
+        #print('p:', p)
+        #print('r:', r)
+        #print('f1:',f1)
         return f1
 
 

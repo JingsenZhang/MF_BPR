@@ -100,10 +100,11 @@ if __name__=='__main__':
         #utils.save_model(model,'MF')
 
 
-    #BPR
+
     else:
         print('BPR')
-        train_data, test_user_ratings, test_data, user_num ,item_num, train_mat = data_utils.BPRData.load_all(test_samples_num=args.test_samples_num)
+
+        train_data, test_user_ratings, test_data, user_num ,item_num, train_mat,user_list = data_utils.load_all(test_samples_num=args.test_samples_num)
 
         # traindataset \ testdataset
         train_dataset = data_utils.BPRData(train_data, item_num, train_mat, args.num_ng, True)
@@ -154,11 +155,75 @@ if __name__=='__main__':
             f1_list.append(f1_mean)
             print("Epoch: {}, loss: {}, Test F1: {}".format(epoch + 1, round(loss.item(), 5),round(f1_mean,5)))
 
-        #utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/bpr_loss.jpg")
-        #utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score', "image/bpr_f1.jpg")
+        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/bpr_loss.jpg")
+        utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score', "image/bpr_f1.jpg")
         #all_path = 'result/f1/' + 'D{}.txt'.format(args.factor_dim)
         #utils.save_txt(all_path, f1_list)
         #utils.save_model(model, 'BPR')
+
+
+
+        '''
+        # BPR  （all ranking情形）
+        train_data, test_user_ratings, user_num ,item_num, train_mat ,user_list= data_utils.load_all(test_samples_num=args.test_samples_num)
+        # traindataset
+        train_dataset = data_utils.BPRData(train_data, item_num, train_mat, args.num_ng, True)
+        train_loader = data.DataLoader(train_dataset,batch_size=args.batch_size, shuffle=True)
+
+        model = model.BPRmodel(user_num, item_num, args.factor_dim)
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.lambd)
+
+        loss_list=[]
+        f1_list=[]
+        f1_epoch_list=[]
+        test_u=[]
+        user_f1=0.0
+
+        #train_loader.dataset.negative_sampling()
+        for epoch in range(args.num_epoch):
+            #train
+            model.train()
+            train_loader.dataset.negative_sampling()
+            for user, item_i, item_j in train_loader:          #在一个epoch中每次训练batch个数据
+                model.zero_grad()
+                loss = model(user,item_i,item_j)
+                loss.backward()
+                optimizer.step()
+            loss_list.append(loss)
+
+            #test
+            model.eval()
+            f1_epoch_list.clear()
+            for u in user_list:
+                #print('u:',u)
+                candidate_u_list=data_utils.generate_candidate_u(u,item_num,train_mat)
+                u_list=[]
+                i_list=[]
+                for x in candidate_u_list:
+                    u_list.append(x[0])
+                    i_list.append(x[1])
+                u_list = torch.tensor(u_list)
+                i_list = torch.tensor(i_list)
+                prediction_i = model.predict(u_list, i_list)
+                _, indices = torch.topk(prediction_i, args.top_k)
+                recommend_u = torch.take(i_list, indices).numpy().tolist()
+
+                test_u.clear()
+                if u in test_user_ratings.keys():
+                    test_u = test_user_ratings[u]
+                    test_u = list(test_u)
+                test_u.append(i_list[0])
+
+                user_f1 = Metric.f1_score(recommend_u,test_u)
+                f1_epoch_list.append(user_f1)
+                #print('user_f1:',user_f1)
+            f1_mean=np.mean(f1_epoch_list)
+            f1_list.append(f1_mean)
+            print("Epoch: {}, loss: {}, Test F1: {}".format(epoch + 1, round(loss.item(), 5),round(f1_mean,5)))
+
+        utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "image/bpr_loss.jpg")
+        utils.result_plot(f1_list, 'Testing', 'Epochs', 'F1-score', "image/bpr_f1.jpg")
+        '''
 
 
 
