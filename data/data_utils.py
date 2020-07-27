@@ -15,7 +15,12 @@ class BPRData(data.Dataset):
 		self.num_ng = num_ng
 		self.is_training = is_training
 
-	def load_all(train_rating_path='dataset/train_user_retio.csv', test_rating_path='dataset/test_user_retio.csv',test_samples_num=100,
+
+
+
+
+
+	def load_all(train_rating_path='dataset/train_user_num.csv', test_rating_path='dataset/test_user_num.csv',test_samples_num=100,
 				test_negative='dataset/ml-1m.test.negative'):
 		""" We load all the file here to save time in each epoch. """
 
@@ -45,18 +50,21 @@ class BPRData(data.Dataset):
 				u = int(u)
 				i = int(i)
 				test_user_ratings[u].add(i)  # test_user_ratings:  defaultdict(<type 'set()'>, { 'u1': {i1,i2....}, 'u2': {i5.i6....} } )
-		'''
-		# 候选物品
+
+		# all ranking
 		candidate_list = []
-		#all ranking
 		for u in user_list:
-			candidate_list[u]=[]
 			for i in range(1, item_num):
 				if not ((u, i) in train_mat):
-					candidate_list[u].append([u, i])
+					candidate_list.append([u, i])
+			print(candidate_list)
 
 
 
+
+
+		'''
+		#使用原数据集test_negative，凑齐100个（1+99）
 		candidate_list = []
 		with open(test_negative, 'r') as fd:
 			line = fd.readline()
@@ -69,7 +77,22 @@ class BPRData(data.Dataset):
 				line = fd.readline()
 		'''
 
+		'''
+		#使用数据集test_user_num，凑齐100个（2+98）
+		candidate_list = []
+		for u in user_list:
+			for i in test_user_ratings[u]:
+				candidate_list.append([u, i])
+			for t in range(2,test_samples_num):
+				i = np.random.randint(item_num)
+				while (u, i) in train_mat:
+					i = np.random.randint(item_num)
+				candidate_list.append([u, i])
+			#print(len(candidate_list))
+		'''
 
+		'''
+		#随机抽取不在metrix中的100个样本
 		candidate_list=[]
 		for u in user_list:
 			for t in range(test_samples_num):
@@ -77,9 +100,22 @@ class BPRData(data.Dataset):
 				while (u, i) in train_mat:
 					i = np.random.randint(item_num)
 				candidate_list.append([u, i])
-
+		'''
 
 		return train_user_rating, test_user_ratings, candidate_list, user_num, item_num, train_mat
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	def negative_sampling(self):
 		assert self.is_training, 'no need to sampling when testing'
