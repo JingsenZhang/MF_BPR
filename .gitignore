@@ -5,7 +5,7 @@ __pycache__/
 !/result/.gitkeep
 
 /dataset/*
-!/dataset/*.rating
+!/dataset/ml100k*
 !/dataset/train_user_retio.csv
 !/dataset/test_user_retio.csv
 !/dataset/train_user_num.csv
