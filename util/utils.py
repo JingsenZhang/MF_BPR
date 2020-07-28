@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pylab as pl
 
 
-def result_plot(result,title,xlable,ylable,save_path='image/result.jpg'):
+def result_plot(result,title,xlable,ylable,save_path='result/result.jpg'):
     plt.plot(result)
     plt.title(title)
     plt.xlabel(xlable)

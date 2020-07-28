@@ -13,5 +13,3 @@ class Logger(object):
     def flush(self):
         pass
 
-
-
