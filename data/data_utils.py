@@ -64,7 +64,7 @@ def load_all(train_rating_path='dataset/train_user_num.csv',
 	'''
 
 	'''
-	#随机抽取不在metrix中的100个样本
+	#随机抽取不在metrix中的100个
 	candidate_list=[]
 	for u in user_list:
 		for t in range(test_samples_num):

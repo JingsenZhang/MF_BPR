@@ -15,7 +15,7 @@ def result_plot(result,title,xlable,ylable,save_path='result/result.jpg'):
     plt.ylabel(ylable)
     #plt.show()
     plt.savefig(save_path)
-    #plt.clf()  # 画完第一个图之后重置
+    plt.clf()  # 画完第一个图之后重置
 
 def select_parameters(metric_name,parameter_name,values,xlabel,ylabel,title):
     for v in values:
