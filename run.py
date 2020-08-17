@@ -1,12 +1,21 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
 
 
 if __name__=='__main__':
-    #os.system( 'python main.py --model BPR --lr 0.1 --lambd 1e-5 --batch_size 4096 --num_epoch 2 --top_k 10 --factor_dim 20 --num_ng 3 --test_samples_num 100')
-    #os.system( 'python main.py --model GMF')
-    #os.system('python main.py --model MLP')
-    os.system('python main.py --model NeuMF')
-    #os.system('python main.py --model BPR')
+    #os.system('python MF.py --lr 0.01 --epochs 2 --embedding_dim 32 --lambd 1e-5')
+    #os.system( 'python BPR.py --lr 0.01  --batch_size 256 --epochs 2 --top_k 10 --embedding_dim 8 --num_ng 4 --lambd 1e-5')
+    os.system( 'python GMF.py --lr 0.001 --batch_size=256 --epochs 1 --top_k 10 --embedding_dim 8 --num_ng 4 --data_set ml-1m --out True ')
+    #os.system('python MLP.py --lr 0.001 --batch_size=256 --epochs 1 --top_k 10 --embedding_dim 32 --num_ng 4 --data_set ml-1m --out True ')
+    #os.system('python NeuMF.py --lr 0.001 --batch_size=256 --epochs 1 --top_k 10 --pretrained --embedding_dim_GMF 8 --embedding_dim_MLP 32 --hidden_layer_MLP 32 16 8 --num_ng 4 --data_set ml-1m --out True ')
+
+
+
+
+
+
+
 
 
 

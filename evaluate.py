@@ -34,9 +34,6 @@ def precision_recall(recommend_u,test_u):
     r = val / len(test_u)
     return p,r
 
-#mean
-def mean(result):
-    return np.mean(result)
 
 #f1-score
 def f1_score(recommend_u, test_u):

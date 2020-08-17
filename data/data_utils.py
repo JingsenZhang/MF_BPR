@@ -12,18 +12,17 @@ train_path=main_path+'{}.train.rating'.format(dataset)
 test_path=main_path+'{}.test.rating'.format(dataset)
 test_negative=main_path+'{}.test.negative'.format(dataset)
 
-def load_all():
-	""" We load all the file here to save time in each epoch. """
-
+def load_all(datafile):
 	# 用于训练的用户真实评分   [[u1,i1],[u2,i2]...]    训练集：有过行为的用户和物品组
-	train_data = pd.read_csv(train_path, sep='\t', header=None, names=['user', 'item'], usecols=[0, 1],
+	train_data = pd.read_csv(datafile+'.train.rating', sep='\t', header=None, names=['user', 'item'], usecols=[0, 1],
 									dtype={0: np.int32, 1: np.int32})
+
 	user_num = train_data['user'].max() + 1
 	item_num = train_data['item'].max() + 1
 	print('user_num', user_num)
 	print('item_num', item_num)
-	user_num=7000
-	item_num=7000
+	#user_num=7000
+	#item_num=7000
 
 	user_list = train_data['user'].unique()
 	train_data = train_data.values.tolist()
@@ -35,7 +34,7 @@ def load_all():
 
 	# 用于测试的用户真实评分  test_user_ratings:  defaultdict(<type 'set()'>, { 'u1': {i1,i2....}, 'u2': {i5.i6....} } )
 	test_data = defaultdict(set)
-	with open(test_path, 'r') as f:
+	with open(datafile+'.test.rating', 'r') as f:
 		for line in f.readlines():
 			u, i, _, _ = line.split('\t')
 			u = int(u)
@@ -44,7 +43,7 @@ def load_all():
 
 	#使用数据集test_negative，候选列表大小为100（1+99）
 	candidate_list = []
-	with open(test_negative, 'r') as fd:
+	with open(datafile+'.test.negative', 'r') as fd:
 		line = fd.readline()
 		while line != None and line != '':
 			arr = line.split('\t')
@@ -97,7 +96,7 @@ class BPRData(data.Dataset):
 		self.num_ng = num_ng
 		self.is_training = is_training
 
-	def negative_sampling(self):
+	def ng_sample(self):
 		assert self.is_training, 'no need to sampling when testing'
 		self.data_sample = []
 		for x in self.data:                                #data为train_data
@@ -119,7 +118,6 @@ class BPRData(data.Dataset):
 		item_j = data[idx][2] if self.is_training else data[idx][1]   #统一成三元组
 		return user, item_i, item_j
 
-
 class NCFData(data.Dataset):
 	def __init__(self,data,num_item,train_mat=None,num_ng=0,is_training=None):
 		super(NCFData,self).__init__()
@@ -131,7 +129,7 @@ class NCFData(data.Dataset):
 		#测试时不需要label，默认为0
 		self.labels=[0 for _ in range(len(data))]
 
-	def negative_sampling(self):
+	def ng_sample(self):
 		assert self.is_training, 'no need to sampling when testing'
 		self.data_ng=[]
 		for x in self.data_ps:
@@ -158,18 +156,6 @@ class NCFData(data.Dataset):
 		item=data[idx][1]
 		label=labels[idx]
 		return user,item,label
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
