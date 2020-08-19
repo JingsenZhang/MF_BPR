@@ -4,13 +4,14 @@ import scipy.sparse as sp
 from collections import defaultdict
 import torch.utils.data as data
 
-
+'''
 dataset='ml-1m'
 assert dataset in ['ml-1m','pinterset-20']
 main_path='./dataset/'
 train_path=main_path+'{}.train.rating'.format(dataset)
 test_path=main_path+'{}.test.rating'.format(dataset)
 test_negative=main_path+'{}.test.negative'.format(dataset)
+'''
 
 def load_all(datafile):
 	# 用于训练的用户真实评分   [[u1,i1],[u2,i2]...]    训练集：有过行为的用户和物品组

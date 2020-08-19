@@ -1,4 +1,5 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import time
 import argparse
 import numpy as np
@@ -20,7 +21,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--lr", type=float, default=0.001, help="learning rate")
 parser.add_argument("--dropout", type=float, default=0.0, help="dropout rate")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size for training")
-parser.add_argument("--epochs", type=int, default=20, help="training epoches")
+parser.add_argument("--epochs", type=int, default=2, help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--embedding_dim_GMF", type=int, default=8, help="dimension of embedding in GMF submodel")
 parser.add_argument("--embedding_dim_MLP", type=int, default=32, help="dimension of embedding in MLP submodel")
@@ -58,8 +59,6 @@ class NeuMF(nn.Module):
 
         MLP_modules = []
         self.num_layers = len(hidden_layer_MLP)
-        print('hidden:', hidden_layer_MLP)
-        print('hidden[0]:', hidden_layer_MLP[0])
         for i in range(self.num_layers):
             MLP_modules.append(nn.Dropout(p=self.dropout))
             if i == 0:
@@ -158,7 +157,6 @@ if __name__=="__main__":
         GMF_model = None
         MLP_model = None
 
-    print('arg.hidden:',args.hidden_layer_MLP)
     model = NeuMF(user_num, item_num, args.embedding_dim_GMF, args.embedding_dim_MLP,
                   args.hidden_layer_MLP, args.dropout, GMF_model, MLP_model)
     model.to(device=args.device)
@@ -218,7 +216,7 @@ if __name__=="__main__":
             if args.out:
                 if not os.path.exists(args.model_path):
                     os.mkdir(args.model_path)
-                torch.save(model, os.path.join(args.model_path, 'MLP.pth'))
+                torch.save(model, os.path.join(args.model_path, 'NeuMF.pth'))
 
     #print("NeuMF End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(best_epoch, best_hr, best_ndcg))
     utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "result/NeuMF_loss.jpg")

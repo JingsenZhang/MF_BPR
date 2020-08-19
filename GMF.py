@@ -1,4 +1,5 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import time
 import argparse
 import numpy as np
@@ -9,7 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 import torch.backends.cudnn as cudnn
-#from tensorboardX import SummaryWriter
+from tensorboardX import SummaryWriter
 
 from data import data_utils
 import evaluate
@@ -20,7 +21,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--lr", type=float, default=0.001, help="learning rate")
 parser.add_argument("--dropout", type=float, default=0.0, help="dropout rate")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size for training")
-parser.add_argument("--epochs", type=int, default=20, help="training epoches")
+parser.add_argument("--epochs", type=int, default=2, help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--embedding_dim", type=int, default=8, help="dimension of embedding")
 parser.add_argument("--num_ng", type=int, default=4, help="sample negative items for training")
@@ -46,9 +47,12 @@ class GMF(nn.Module):
         self.embed_user = nn.Embedding(user_num, embedding_dim)
         self.embed_item = nn.Embedding(item_num, embedding_dim)
         self.predict_layer = nn.Linear(embedding_dim, 1)
+        #self.sigmoid=nn.Sigmoid()
+
 
         nn.init.normal_(self.embed_user.weight, std=0.01)
         nn.init.normal_(self.embed_item.weight, std=0.01)
+        #nn.init.normal_(self.predict_layer.weight, std=0.01)
         nn.init.kaiming_uniform_(self.predict_layer.weight, a=1, nonlinearity='sigmoid')
         # Kaiming/Xavier initialization can not deal with non-zero bias terms
         if self.predict_layer.bias is not None:
@@ -65,6 +69,7 @@ class GMF(nn.Module):
         embed_item=self.embed_item(item)
         output=embed_user*embed_item
         prediction=self.predict_layer(output)
+        #prediction=self.sigmoid(prediction)
         return prediction.view(-1)
 
 if __name__=="__main__":
@@ -89,7 +94,7 @@ if __name__=="__main__":
     model = GMF(user_num, item_num, args.embedding_dim, args.dropout)
     model.to(device=args.device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    # writer = SummaryWriter() # for visualization
+    writer = SummaryWriter() # for visualization
 
     ########################### TRAINING #####################################
     count, best_hr = 0, 0
@@ -112,7 +117,7 @@ if __name__=="__main__":
             loss=model(user,item,label)
             loss.backward()
             optimizer.step()
-            # writer.add_scalar('data/loss', loss.item(), count)
+            writer.add_scalar('data/loss', loss.item(), count)
             count += 1
         loss_list.append(loss)
 

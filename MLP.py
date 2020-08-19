@@ -1,4 +1,5 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import time
 import argparse
 import numpy as np
@@ -20,7 +21,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--lr", type=float, default=0.001, help="learning rate")
 parser.add_argument("--dropout", type=float, default=0.0, help="dropout rate")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size for training")
-parser.add_argument("--epochs", type=int, default=20, help="training epoches")
+parser.add_argument("--epochs", type=int, default=2, help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--embedding_dim", type=int, default=32, help="dimension of embedding")
 parser.add_argument("--hidden_layer", nargs='*', default=[32,16,8], help="dimension of each hidden layer")

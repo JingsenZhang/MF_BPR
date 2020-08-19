@@ -1,4 +1,5 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import time
 import argparse
 import numpy as np
@@ -8,11 +9,9 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.utils.data as data
 import torch.backends.cudnn as cudnn
 #from tensorboardX import SummaryWriter
 
-from data import data_utils
 import evaluate
 from util import utils
 from util.logger import Logger
@@ -27,7 +26,6 @@ parser.add_argument("--batch_size", type=int, default=256, help="batch size for 
 parser.add_argument("--epochs", type=int, default=2, help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--embedding_dim", type=int, default=32, help="dimension of embedding")
-parser.add_argument('--predictive_factors', type=int, default=32, help='predictive_factors')
 parser.add_argument("--num_ng", type=int, default=4, help="sample negative items for training")
 parser.add_argument("--test_num_ng", type=int, default=99, help="sample part of negative items for testing")
 parser.add_argument("--data_set", type=str, default="ml-1m", help="data set. 'ml-1m' or 'pinterest-20'")
@@ -75,8 +73,8 @@ class MF(nn.Module):    #BiasMF
 
 
 if __name__=='__main__':
-    #MF
     print('MF')
+
     #log
     timestamp = time.time()
     run_id = "%.2f" % (timestamp)
@@ -134,11 +132,12 @@ if __name__=='__main__':
         rates_y2 = model.predict(userIdx2, itemIdx2, global_mean)
         rmse = evaluate.RMSE(rates_y2, rates2)
         rmse_list.append(rmse)
-        print('Epoch: {}, loss: {}, Test RMSE: {}'.format(epoch + 1, round(loss.item(), 5), round(rmse.item(), 5)))
+        print('MF Epoch: {}, loss: {}, Test RMSE: {}'.format(epoch + 1, round(loss.item(), 5), round(rmse.item(), 5)))
 
     utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "result/mf_loss.jpg")
     utils.result_plot(rmse_list, 'Testing', 'Epochs', 'RMSE', "result/mf_rmse.jpg")
     #all_path = 'result/rmse/' + 'D{}.txt'.format(args.factor_dim)
     #utils.save_txt(all_path, rmse_list)
     #utils.save_model(model,'MF')
+    print("MF End")
 

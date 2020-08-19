@@ -1,4 +1,5 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import time
 import argparse
 import numpy as np
@@ -23,14 +24,14 @@ parser.add_argument("--lambd",type=float, default=0.001, help="model regularizat
 parser.add_argument("--lr", type=float, default=0.001, help="learning rate")
 parser.add_argument("--dropout", type=float, default=0.0, help="dropout rate")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size for training")
-parser.add_argument("--epochs", type=int, default=20, help="training epoches")
+parser.add_argument("--epochs", type=int, default=2, help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--embedding_dim", type=int, default=8, help="dimension of embedding")
 parser.add_argument("--num_ng", type=int, default=4, help="sample negative items for training")
 parser.add_argument("--test_num_ng", type=int, default=99, help="sample part of negative items for testing")
 parser.add_argument("--data_set", type=str, default="ml-1m", help="data set. 'ml-1m' or 'pinterest-20'")
 parser.add_argument("--data_path", type=str, default="./dataset/")
-parser.add_argument("--model_path", type=str, default="./model")
+parser.add_argument("--model_path", type=str, default="./result/")
 parser.add_argument("--out", type=bool,default=True, help="save model or not")
 parser.add_argument("--disable_cuda", action='store_true', help="Disable CUDA")
 args = parser.parse_args()
@@ -103,7 +104,6 @@ if __name__=='__main__':
         model.train()
         train_loader.dataset.ng_sample()
         for user, item_i, item_j in train_loader:          #在一个epoch中每次训练batch个数据
-            #print(item_i)
             model.zero_grad()
             loss = model(user,item_i,item_j)
             loss.backward()
@@ -145,7 +145,7 @@ if __name__=='__main__':
             if args.out:
                 if not os.path.exists(args.model_path):
                     os.mkdir(args.model_path)
-                torch.save(model, os.path.join(args.model_path, 'GMF.pth'))
+                torch.save(model, os.path.join(args.model_path, 'BPR.pth'))
 
     utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "result/BPR_loss.jpg")
     utils.result_plot(HR_list, 'Testing', 'Epochs', 'HR', "result/BPR_HR.jpg")

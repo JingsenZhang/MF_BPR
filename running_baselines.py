@@ -11,12 +11,14 @@ def execute_command(cmd):
     print('begin command: ', cmd)
     start = time.time()
     s = subprocess.Popen(str(cmd), stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-    stderrinfo, stdoutinfo = s.communicate()
-    line = stderrinfo.rstrip().decode('utf8')
+    stdoutinfo, stderrinfo = s.communicate()
+    line = stdoutinfo.rstrip().decode('utf8')
     print(cmd, line[line.find('best_hr'):])
-    #print('end command: ', cmd, 'time cost: ', str(time.time() - start))
+    print(cmd, line[line.find('best_ndcg'):])
+    print('end command: ', cmd)
+    print('time cost: ', str(time.time() - start))
 
-#执行q中的cmd
+#从q中取出cmd
 def consume(q):
     while (True):
         name = threading.currentThread().getName()
@@ -40,12 +42,13 @@ def producer(q, cmd_list):
 
 if __name__ == '__main__':
     cmd_list = []
-    for baseline in ['GMF.py', 'MLP.py', 'NeuMF.py']:
+    for baseline in ['BPR.py','MF.py', ]:
         cmd = 'python ' + baseline
         cmd_list.append(cmd)
 
     threads_num = 4
     q = queue.Queue(maxsize=threads_num)
+    #是否有问题？？
     for i in range(threads_num):
         t = threading.Thread(name="ConsumerThread-" + str(i), target=consume, args=(q,))
         t.start()
