@@ -16,6 +16,8 @@ from data import data_utils
 import evaluate
 from util import utils
 from util.logger import Logger
+import GMF
+import MLP
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--lr", type=float, default=0.001, help="learning rate")
@@ -26,7 +28,7 @@ parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k
 parser.add_argument("--embedding_dim_GMF", type=int, default=8, help="dimension of embedding in GMF submodel")
 parser.add_argument("--embedding_dim_MLP", type=int, default=32, help="dimension of embedding in MLP submodel")
 parser.add_argument("--hidden_layer_MLP", nargs='*',type=int, default=[32, 16, 8], help="hidden layers in MLP")
-parser.add_argument("--pretrained", action='store_true', help="use pretrained model to initialize weights")
+parser.add_argument("--use_pretrained", action='store_true', help="use pretrained model to initialize weights")
 parser.add_argument("--num_ng", type=int, default=4, help="sample negative items for training")
 parser.add_argument("--test_num_ng", type=int, default=99, help="sample part of negative items for testing")
 parser.add_argument("--data_set", type=str, default="ml-1m", help="data set. 'ml-1m' or 'pinterest-20'")
@@ -70,8 +72,8 @@ class NeuMF(nn.Module):
 
         self.predict_layer = nn.Linear(hidden_layer_MLP[-1] + embedding_dim_GMF, 1)
 
-        print('pretrained:',args.pretrained)
-        if not args.pretrained:
+        print('pretrained:',args.use_pretrained)
+        if not args.use_pretrained:
             nn.init.normal_(self.embed_user_GMF.weight, std=0.01)
             nn.init.normal_(self.embed_item_GMF.weight, std=0.01)
             nn.init.normal_(self.embed_user_MLP.weight, std=0.01)
@@ -133,8 +135,8 @@ if __name__=="__main__":
     #log
     timestamp = time.time()
     run_id = "%.2f" % (timestamp)
-    log_dir='result/NeuMF_log/'+run_id+'.log'
-    log_error_dir = 'result/NeuMF_log/' +run_id+'error.log'
+    log_dir='result/NeuMF_pre_log/'+run_id+'.log'   #1
+    log_error_dir = 'result/NeuMF_pre_log/' +run_id+'error.log'
     sys.stdout = Logger(log_dir, sys.stdout)
     sys.stderr = Logger(log_error_dir, sys.stderr)  # redirect std err, if necessary
 
@@ -148,11 +150,13 @@ if __name__=="__main__":
 
     GMF_model_path = os.path.join(args.model_path, 'GMF.pth')
     MLP_model_path = os.path.join(args.model_path, 'MLP.pth')
-    if args.pretrained:
+    if args.use_pretrained:
         assert os.path.exists(GMF_model_path), 'lack of GMF model'
         assert os.path.exists(MLP_model_path), 'lack of MLP model'
-        GMF_model = torch.load(GMF_model_path)
-        MLP_model = torch.load(MLP_model_path)
+        GMF_model=GMF.GMF(user_num,item_num,args.embedding_dim_GMF,args.dropout)
+        GMF_model.load_state_dict(torch.load(GMF_model_path))
+        MLP_model=MLP.MLP(user_num,item_num,args.embedding_dim_MLP,args.hidden_layer_MLP,args.dropout)
+        MLP_model.load_state_dict(torch.load(MLP_model_path))
     else:
         GMF_model = None
         MLP_model = None
@@ -160,7 +164,7 @@ if __name__=="__main__":
     model = NeuMF(user_num, item_num, args.embedding_dim_GMF, args.embedding_dim_MLP,
                   args.hidden_layer_MLP, args.dropout, GMF_model, MLP_model)
     model.to(device=args.device)
-    if args.pretrained:
+    if args.use_pretrained:
         optimizer = optim.SGD(model.parameters(), lr=args.lr)
     else:
         optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -205,7 +209,8 @@ if __name__=="__main__":
         ndcg=np.mean(NDCG)
         HR_list.append(hr)
         NDCG_list.append(ndcg)
-        print("NeuMF Epoch: {}, loss: {}, HR: {}, NDCG: {}".format(epoch + 1, round(loss.item(), 5), round(hr, 5),round(ndcg,5)))
+        #2
+        print("NeuMF_pre Epoch: {}, loss: {}, HR: {}, NDCG: {}".format(epoch + 1, round(loss.item(), 5), round(hr, 5),round(ndcg,5)))
 
         elapsed_time = time.time() - start_time
         print("The time elapse of epoch {:03d}".format(epoch+1) + " is: " +
@@ -216,12 +221,12 @@ if __name__=="__main__":
             if args.out:
                 if not os.path.exists(args.model_path):
                     os.mkdir(args.model_path)
-                torch.save(model, os.path.join(args.model_path, 'NeuMF.pth'))
-
+                torch.save(model.state_dict(), os.path.join(args.model_path, 'NeuMF_pre.pth'))
+    #3
     #print("NeuMF End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(best_epoch, best_hr, best_ndcg))
-    utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "result/NeuMF_loss.jpg")
-    utils.result_plot(HR_list, 'Testing', 'Epochs', 'HR', "result/NeuMF_HR.jpg")
-    utils.result_plot(NDCG_list, 'Testing', 'Epochs', 'NDCG', "result/NeuMF_NDCG.jpg")
-    print("NeuMF End")
+    utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "result/NeuMF_pre_loss.jpg")
+    utils.result_plot(HR_list, 'Testing', 'Epochs', 'HR', "result/NeuMF_pre_HR.jpg")
+    utils.result_plot(NDCG_list, 'Testing', 'Epochs', 'NDCG', "result/NeuMF_pre_NDCG.jpg")
+    print("NeuMF_pre End")
     print('best_hr:{:.3f}'.format(best_hr))
     print('best_ndcg:{:.3f}'.format(best_ndcg))

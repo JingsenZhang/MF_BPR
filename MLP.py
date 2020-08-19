@@ -25,13 +25,17 @@ parser.add_argument("--epochs", type=int, default=2, help="training epoches")
 parser.add_argument("--top_k", type=int, default=10, help="compute metrics@top_k")
 parser.add_argument("--embedding_dim", type=int, default=32, help="dimension of embedding")
 parser.add_argument("--hidden_layer", nargs='*', default=[32,16,8], help="dimension of each hidden layer")
+parser.add_argument("--embedding_dim_GMF", type=int, default=8, help="dimension of embedding in GMF submodel")
+parser.add_argument("--embedding_dim_MLP", type=int, default=32, help="dimension of embedding in MLP submodel")
+parser.add_argument("--hidden_layer_MLP", nargs='*',type=int, default=[32, 16, 8], help="hidden layers in MLP")
+parser.add_argument("--use_pretrained", action='store_true', help="use pretrained model to initialize weights")
 parser.add_argument("--num_ng", type=int, default=4, help="sample negative items for training")
 parser.add_argument("--test_num_ng", type=int, default=99, help="sample part of negative items for testing")
 parser.add_argument("--data_set", type=str, default="ml-1m", help="data set. 'ml-1m' or 'pinterest-20'")
 parser.add_argument("--data_path", type=str, default="./dataset/")
 parser.add_argument("--model_path", type=str, default="./result/")
-parser.add_argument("--out", default=True, help="save model or not")
-parser.add_argument("--disable_cuda", action='store_true', help="Disable CUDA")
+parser.add_argument("--out", type=bool, default=True, help="save model or not")
+parser.add_argument("--disable_cuda",action='store_true', help="Disable CUDA")
 args = parser.parse_args()
 args.device = None
 if not args.disable_cuda and torch.cuda.is_available():
@@ -163,7 +167,7 @@ if __name__=="__main__":
             if args.out:
                 if not os.path.exists(args.model_path):
                     os.mkdir(args.model_path)
-                torch.save(model, os.path.join(args.model_path, 'MLP.pth'))
+                torch.save(model.state_dict(), os.path.join(args.model_path, 'MLP.pth'))
 
     #print("MLP End. Best epoch {}: HR = {:.3f}, NDCG = {:.3f}".format(best_epoch, best_hr, best_ndcg))
     utils.result_plot(loss_list, 'Training', 'Epochs', 'Loss', "result/MLP_loss.jpg")

@@ -42,9 +42,30 @@ def producer(q, cmd_list):
 
 if __name__ == '__main__':
     cmd_list = []
-    for baseline in ['BPR.py','MF.py', ]:
-        cmd = 'python ' + baseline
-        cmd_list.append(cmd)
+    for baseline in ['BPR.py','NeuMF.py' ]:
+        #可继续添加某一参数的for循环
+        for k in range(1,11):
+            cmd = 'python ' + baseline + \
+                  ' --top_k ' + str(k)
+            cmd_list.append(cmd)
+        '''
+        for ng_num in range(1,11):
+            cmd = 'python ' + baseline + \
+                  ' --num_ng ' + str(ng_num)
+            cmd_list.append(cmd)
+        '''
+        '''
+        for hidden_layer in ['8,16,32','16,16,32','32,16,32','64,16,32']
+            cmd = 'python ' + baseline + \
+                  ' --hidden_layer_MLP ' + str(hidden_layer)
+            cmd_list.append(cmd)
+        '''
+        '''
+        for hidden_layer in ['8','8,8','8,8,8','8,8,8,8']   #层数为零的情况单独考虑
+            cmd = 'python ' + baseline + \
+                  ' --hidden_layer_MLP ' + str(hidden_layer)
+            cmd_list.append(cmd)
+        '''
 
     threads_num = 4
     q = queue.Queue(maxsize=threads_num)
